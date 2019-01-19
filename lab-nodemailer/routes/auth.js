@@ -97,26 +97,28 @@ router.post("/signup", (req, res, next) => {
   });
 });
 
-router.get('/auth/confirm/:confirmCode', (req, res, next) => {
-  const confirmationCode = req.param.confirmCode;
+router.get('/confirm/:confirmCode', (req, res, next) => {
+  const confirmationCode = req.params.confirmCode;
+  
+  console.log("this is our req param confirmation code" + confirmationCode)
 
-  User.findOne({ confirmationCode }, "confirmationCode", (err, confCode) => {
-    if (confCode !== null) {
-      User.update({ confirmationCode }, { $set: { confirmationCode } })
-        .then(() => {
-          res.render("confirmation-success", {
-            message: "Your email adress is confirmed"
-          });
-          setTimeout(() => {
-            res.redirect("/");
-          }, 2000);
-        })
-        .catch(error => {
-          console.log(error);
+  User.findOne({ confirmationCode: confirmationCode }, (err, user) => {
+    if (err) return console.log('err findOne', err);
+    
+    console.log("user", user)
+    User.update( {_id: user._id} , { $set: { status : "Active" } })
+      .then(() => {
+        res.render("confirmation-success", {
+          message: "Your email adress is confirmed"
         });
-    }
-  }).then(() => {});
-});
+      })
+      .catch(error => {
+        console.log(error);
+        res.send('nok update');
+      });
+  });
+})
+  
 
 router.get("/logout", (req, res) => {
   req.logout();
